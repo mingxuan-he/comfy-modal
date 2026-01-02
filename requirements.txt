@@ -1,0 +1,2 @@
+modal-client>=0.62.115
+huggingface-hub==0.36.0

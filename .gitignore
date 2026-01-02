@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+.venv/
+venv/
+env/
+
+.DS_Store
+
+# Modal / Comfy outputs (optional)
+output/
+outputs/
+
