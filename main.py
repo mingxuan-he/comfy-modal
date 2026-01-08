@@ -14,11 +14,15 @@ def hf_download():
     comfyui_dir = Path("/root/comfy/ComfyUI")
     models_dir = comfyui_dir / "models"
 
-    # Cache both model families into the Volume once; subsequent starts should hit the cache.
+    # Cache image and video model families into the Volume once; subsequent starts should hit the cache.
     #
-    # Qwen-Image-2512 in ComfyUI uses the ComfyUI-native weights repo:
-    # - https://docs.comfy.org/tutorials/image/qwen/qwen-image-2512
-    # - https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI
+    # Image models:
+    # - Qwen-Image-2512: https://docs.comfy.org/tutorials/image/qwen/qwen-image-2512
+    # - z-image-turbo: https://huggingface.co/Comfy-Org/z_image_turbo
+    # - Qwen-Image-Edit-2511: https://docs.comfy.org/tutorials/image/qwen/qwen-image-edit-2511
+    #
+    # Video models:
+    # - Hunyuan Video: https://docs.comfy.org/tutorials/video/hunyuan/hunyuan-video
     models: list[dict[str, str]] = [
         # z-image-turbo: https://huggingface.co/Comfy-Org/z_image_turbo
         {
@@ -86,6 +90,54 @@ def hf_download():
             "filename": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
             "target_name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
             "sub_dir": "loras",
+        },
+        # Hunyuan Video models - Common (shared between T2V and I2V)
+        # https://docs.comfy.org/tutorials/video/hunyuan/hunyuan-video
+        {
+            "repo_id": "Comfy-Org/HunyuanVideo_repackaged",
+            "filename": "split_files/text_encoders/clip_l.safetensors",
+            "target_name": "clip_l.safetensors",
+            "sub_dir": "text_encoders",
+        },
+        {
+            "repo_id": "Comfy-Org/HunyuanVideo_repackaged",
+            "filename": "split_files/text_encoders/llava_llama3_fp8_scaled.safetensors",
+            "target_name": "llava_llama3_fp8_scaled.safetensors",
+            "sub_dir": "text_encoders",
+        },
+        {
+            "repo_id": "Comfy-Org/HunyuanVideo_repackaged",
+            "filename": "split_files/vae/hunyuan_video_vae_bf16.safetensors",
+            "target_name": "hunyuan_video_vae_bf16.safetensors",
+            "sub_dir": "vae",
+        },
+        # Hunyuan Video - Text-to-Video model
+        {
+            "repo_id": "Comfy-Org/HunyuanVideo_repackaged",
+            "filename": "split_files/diffusion_models/hunyuan_video_t2v_720p_bf16.safetensors",
+            "target_name": "hunyuan_video_t2v_720p_bf16.safetensors",
+            "sub_dir": "diffusion_models",
+        },
+        # Hunyuan Video - Image-to-Video shared model
+        {
+            "repo_id": "Comfy-Org/HunyuanVideo_repackaged",
+            "filename": "split_files/clip_vision/llava_llama3_vision.safetensors",
+            "target_name": "llava_llama3_vision.safetensors",
+            "sub_dir": "clip_vision",
+        },
+        # Hunyuan Video - Image-to-Video v1 (concat) model
+        {
+            "repo_id": "Comfy-Org/HunyuanVideo_repackaged",
+            "filename": "split_files/diffusion_models/hunyuan_video_image_to_video_720p_bf16.safetensors",
+            "target_name": "hunyuan_video_image_to_video_720p_bf16.safetensors",
+            "sub_dir": "diffusion_models",
+        },
+        # Hunyuan Video - Image-to-Video v2 (replace) model
+        {
+            "repo_id": "Comfy-Org/HunyuanVideo_repackaged",
+            "filename": "split_files/diffusion_models/hunyuan_video_v2_replace_image_to_video_720p_bf16.safetensors",
+            "target_name": "hunyuan_video_v2_replace_image_to_video_720p_bf16.safetensors",
+            "sub_dir": "diffusion_models",
         },
     ]
 
