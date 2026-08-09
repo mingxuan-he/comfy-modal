@@ -69,9 +69,7 @@ Why these:
 ### Custom nodes
 
 [`Larryvrh/ComfyUI-MiniMax-H3-Turbo`](https://github.com/Larryvrh/ComfyUI-MiniMax-H3-Turbo)
-is installed via `comfy node install` from the Comfy Registry, falling back to a
-git clone if the registry copy is missing the bundled `h3_silu_temb_grid.safetensors`
-that pruned bases need.
+is installed directly from its current upstream commit. It declares no Python dependencies; avoiding Comfy-Manager here also prevents its dependency restore from replacing the CUDA 13.0 PyTorch build.
 
 ### Workflow
 

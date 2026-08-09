@@ -128,17 +128,17 @@ image = (
     .uv_pip_install("comfy-cli==1.15.0")
     # nightly = latest master; MiniMax-H3 support and ModelSamplingAV are recent.
     .run_commands(
-        "comfy --skip-prompt install --fast-deps --nvidia --cuda-version 13.0 --version nightly"
+        "comfy --skip-prompt install --fast-deps --skip-manager --nvidia --cuda-version 13.0 --version nightly"
     )
-    # Turbo LoRA loader + few-step sampler. Registry install first (Ming's comfy-cli
-    # preference); fall back to a git clone if the registry copy is missing the
-    # bundled h3_silu_temb_grid.safetensors that pruned bases need.
+    # Turbo node currently has no Python dependencies. Install it directly from
+    # the upstream commit. Running Comfy-Manager's installer here is actively
+    # harmful: even when registry lookup fails, its dependency restore re-resolves
+    # unpinned `torch` and silently replaces the requested cu130 build with cu126.
     .run_commands(
-        "comfy --skip-prompt node install comfyui-minimax-h3-turbo --fast-deps || true",
-        "python3 -c \"import glob,sys; sys.exit(0 if glob.glob("
-        "'/root/comfy/ComfyUI/custom_nodes/*/h3_silu_temb_grid.safetensors') else 1)\""
-        " || git clone --depth 1 https://github.com/Larryvrh/ComfyUI-MiniMax-H3-Turbo"
-        " /root/comfy/ComfyUI/custom_nodes/ComfyUI-MiniMax-H3-Turbo",
+        "git clone https://github.com/Larryvrh/ComfyUI-MiniMax-H3-Turbo "
+        "/root/comfy/ComfyUI/custom_nodes/ComfyUI-MiniMax-H3-Turbo && "
+        "cd /root/comfy/ComfyUI/custom_nodes/ComfyUI-MiniMax-H3-Turbo && "
+        "git checkout 55fee864dd7b2976b1c4ce3c3d5f7968f181409f"
     )
     # Do not override ComfyUI's resolved transformers / huggingface-hub pair.
     # Current nightly resolves them together; independently pinning Hub caused an
