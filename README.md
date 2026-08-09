@@ -76,7 +76,7 @@ that pruned bases need.
 ### Workflow
 
 `workflows/minimax_h3_pinkcherry_turbo_t2va.json`, derived from upstream
-`minimax_h3_t2v_turbo.json` with the model filenames pointed at the files above.
+`minimax_h3_t2v_turbo.json` with the model filenames pointed at the files above. The image uses current ComfyUI nightly, lets ComfyUI resolve its matching `transformers`/`huggingface-hub` pair, and explicitly installs the CUDA 13.0 PyTorch stack recommended by current ComfyUI for optimized kernels.
 
 It is baked into the image at `ComfyUI/user/default/workflows/` and copied there
 again at container start, so it shows up directly in ComfyUI's **Workflows**

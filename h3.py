@@ -127,7 +127,9 @@ image = (
     .uv_pip_install("fastapi[standard]==0.115.4")
     .uv_pip_install("comfy-cli==1.15.0")
     # nightly = latest master; MiniMax-H3 support and ModelSamplingAV are recent.
-    .run_commands("comfy --skip-prompt install --fast-deps --nvidia --version nightly")
+    .run_commands(
+        "comfy --skip-prompt install --fast-deps --nvidia --cuda-version 13.0 --version nightly"
+    )
     # Turbo LoRA loader + few-step sampler. Registry install first (Ming's comfy-cli
     # preference); fall back to a git clone if the registry copy is missing the
     # bundled h3_silu_temb_grid.safetensors that pruned bases need.
@@ -138,7 +140,16 @@ image = (
         " || git clone --depth 1 https://github.com/Larryvrh/ComfyUI-MiniMax-H3-Turbo"
         " /root/comfy/ComfyUI/custom_nodes/ComfyUI-MiniMax-H3-Turbo",
     )
-    .uv_pip_install("huggingface-hub==0.36.0")
+    # Do not override ComfyUI's resolved transformers / huggingface-hub pair.
+    # Current nightly resolves them together; independently pinning Hub caused an
+    # import-time ABI mismatch (`is_offline_mode` missing). Fail the image build
+    # immediately if the pair cannot import.
+    .run_commands(
+        "python -c \"import torch, transformers, huggingface_hub; "
+        "from transformers import CLIPTokenizer; "
+        "print('torch', torch.__version__, 'cuda', torch.version.cuda, "
+        "'transformers', transformers.__version__, 'hub', huggingface_hub.__version__)\""
+    )
     .env({"HF_XET_HIGH_PERFORMANCE": "1"})
     .run_function(
         hf_download,
