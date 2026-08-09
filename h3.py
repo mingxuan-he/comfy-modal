@@ -189,6 +189,7 @@ image = (
     .add_local_dir(
         Path(__file__).parent / "workflows",
         "/root/workflows",
+        copy=True,  # needed during the build so the next step can copy them
     )
     .run_function(install_workflows)
 )
