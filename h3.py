@@ -25,8 +25,6 @@ hf_secret = modal.Secret.from_name("huggingface-secret")
 
 CACHE_DIR = "/cache"
 COMFY_DIR = Path("/root/comfy/ComfyUI")
-WORKFLOW_NAME = "minimax_h3_pinkcherry_turbo_t2va.json"
-WORKFLOW_SRC = Path("/root/workflows") / WORKFLOW_NAME
 WORKFLOW_DST_DIR = COMFY_DIR / "user" / "default" / "workflows"
 
 # Exact filenames here are what the bundled workflow references - keep them in sync.
@@ -37,6 +35,13 @@ MODELS: list[dict[str, str]] = [
         "repo_id": "SexGod1979/PinkCherry_MiniMax-H3",
         "filename": "alpha-0.5-testing/PinkCherry_h3_fl2va_pruned_int8_v0.5-alpha.safetensors",
         "target_name": "PinkCherry_h3_fl2va_pruned_int8_v0.5-alpha.safetensors",
+        "sub_dir": "diffusion_models",
+    },
+    # Reference-to-Video base model: official pruned INT8 (~21 GB).
+    {
+        "repo_id": "Comfy-Org/MiniMax-H3",
+        "filename": "diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+        "target_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
         "sub_dir": "diffusion_models",
     },
     # Text encoder: Qwen3-VL 32B, INT8 convrot (~27 GB).
@@ -102,14 +107,18 @@ def hf_download():
         print(f"Linked {target_path} -> {cached_path}")
 
 
-def install_workflow():
-    """Copy the bundled workflow into ComfyUI's user workflow directory.
+def install_workflows():
+    """Copy all bundled workflows into ComfyUI's user workflow directory.
 
     Runs at build time and again at container start, so an updated JSON lands even
     when the rest of the image layer is cached.
     """
     WORKFLOW_DST_DIR.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(WORKFLOW_SRC, WORKFLOW_DST_DIR / WORKFLOW_NAME)
+    src_dir = Path("/root/workflows")
+    if src_dir.exists():
+        for wf in src_dir.glob("*.json"):
+            shutil.copyfile(wf, WORKFLOW_DST_DIR / wf.name)
+            print(f"Installed workflow at {WORKFLOW_DST_DIR / wf.name}")
 
     # ComfyUI runs single-user here and reads workflows from user/default/, but it
     # only writes users.json under --multi-user. Writing it keeps the "default"
@@ -118,7 +127,7 @@ def install_workflow():
     if not users_file.exists():
         users_file.write_text('{"default": "default"}\n')
 
-    print(f"Installed workflow at {WORKFLOW_DST_DIR / WORKFLOW_NAME}")
+    
 
 
 image = (
@@ -177,12 +186,11 @@ image = (
         secrets=[hf_secret],
         timeout=60 * 60 * 4,  # ~55 GB on a cold Volume
     )
-    .add_local_file(
-        Path(__file__).parent / "workflows" / WORKFLOW_NAME,
-        WORKFLOW_SRC.as_posix(),
-        copy=True,  # needed during the build so the next step can copy it
+    .add_local_dir(
+        Path(__file__).parent / "workflows",
+        "/root/workflows",
     )
-    .run_function(install_workflow)
+    .run_function(install_workflows)
 )
 
 app = modal.App(name=APP_NAME, image=image)
@@ -214,5 +222,5 @@ def download_models():
 @modal.concurrent(max_inputs=10)  # required for UI startup
 @modal.web_server(8000, startup_timeout=300)
 def ui():
-    install_workflow()
+    install_workflows()
     subprocess.Popen("comfy launch -- --listen 0.0.0.0 --port 8000", shell=True)
