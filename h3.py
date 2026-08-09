@@ -140,6 +140,26 @@ image = (
         "cd /root/comfy/ComfyUI/custom_nodes/ComfyUI-MiniMax-H3-Turbo && "
         "git checkout 55fee864dd7b2976b1c4ce3c3d5f7968f181409f"
     )
+    # Modal's HTTP proxy decodes `%2F` before forwarding. ComfyUI's default
+    # `/userdata/{file}` route only matches one segment, so nested workflow paths
+    # such as `workflows/name.json` list successfully but 404 when opened. Accept
+    # slash-containing userdata paths for GET/POST/DELETE. Path traversal remains
+    # blocked by UserManager.get_request_user_filepath().
+    .run_commands(
+        "python - <<'PY'\n"
+        "from pathlib import Path\n"
+        "p = Path('/root/comfy/ComfyUI/app/user_manager.py')\n"
+        "s = p.read_text()\n"
+        "for method in ('get', 'post', 'delete'):\n"
+        "    old = f'@routes.{method}(\"/userdata/{{file}}\")'\n"
+        "    new = f'@routes.{method}(\"/userdata/{{file:.+}}\")'\n"
+        "    if old not in s:\n"
+        "        raise RuntimeError(f'missing expected userdata route: {old}')\n"
+        "    s = s.replace(old, new, 1)\n"
+        "p.write_text(s)\n"
+        "print('patched nested userdata routes')\n"
+        "PY"
+    )
     # Do not override ComfyUI's resolved transformers / huggingface-hub pair.
     # Current nightly resolves them together; independently pinning Hub caused an
     # import-time ABI mismatch (`is_offline_mode` missing). Fail the image build

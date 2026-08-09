@@ -80,6 +80,8 @@ It is baked into the image at `ComfyUI/user/default/workflows/` and copied there
 again at container start, so it shows up directly in ComfyUI's **Workflows**
 sidebar — no dragging JSON onto the canvas.
 
+The image also patches ComfyUI's userdata route to accept nested paths after Modal's proxy decodes `%2F`; without this, sidebar listing works but opening `workflows/name.json` returns 404.
+
 Defaults: **6 steps**, scheduler `simple`, LoRA strength **1.0**, `low_vram` off
 (bypass), **1344x768**, **124 frames** (~5s at 24fps, via duration `5.0` snapped to
 the model's 17k+5 grid).
